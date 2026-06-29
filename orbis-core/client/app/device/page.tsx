@@ -8,7 +8,10 @@ import { ShieldAlert } from "lucide-react";
 
 const DeviceAuthorizationContent = () => {
   const searchParams = useSearchParams();
-  const [userCode, setUserCode] = useState(searchParams.get("user_code") || "");
+  const [userCode, setUserCode] = useState(() => {
+  const code = searchParams.get("user_code") || "";
+    return code === "undefined" ? "" : code; // safety guard
+  });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
