@@ -7,20 +7,21 @@ import { deviceAuthorization } from "better-auth/plugins";
 
 export const auth = betterAuth({
     database: prismaAdapter(prisma, {
-        provider: "postgresql", // or "mysql", "postgresql", ...etc
+        provider: "postgresql",
     }),
-    basePath:"/api/auth",
+    baseURL: "https://orbis-ai-l2n7.onrender.com",
+    basePath: "/api/auth",
     trustedOrigins: [
         "http://localhost:3000",
         "https://orbis-ai-bishwajitpattanaik.vercel.app",
     ],
     plugins: [
-    deviceAuthorization({ 
-      verificationUri: "/device", 
-    }), 
-  ],
-    socialProviders:{
-        github:{
+        deviceAuthorization({ 
+            verificationUri: "/device", 
+        }), 
+    ],
+    socialProviders: {
+        github: {
             clientId: process.env.GITHUB_CLIENT_ID,
             clientSecret: process.env.GITHUB_CLIENT_SECRET
         }
