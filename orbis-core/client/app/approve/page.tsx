@@ -4,21 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { CheckCircle, XCircle, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 
-const DeviceApprovalPage = () => {
+const DeviceApprovalContent = () => {
   const { data, isPending } = authClient.useSession();
-
   const router = useRouter();
   const searchParams = useSearchParams();
   const userCode = searchParams.get("user_code");
 
-  const [isProcessing, setIsProcessing] = useState({
-    approve: false,
-    deny: false,
-  });
+  const [isProcessing, setIsProcessing] = useState({ approve: false, deny: false });
 
   useEffect(() => {
     if (isPending) return;
@@ -27,15 +23,7 @@ const DeviceApprovalPage = () => {
     }
   }, [isPending, data, router, userCode]);
 
-  if (isPending) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-background">
-        <Spinner />
-      </div>
-    );
-  }
-
-  if (!data?.session) {
+  if (isPending || !data?.session) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-background">
         <Spinner />
@@ -118,28 +106,13 @@ const DeviceApprovalPage = () => {
           </div>
 
           <div className="space-y-3">
-            <Button
-              onClick={handleApprove}
-              disabled={isProcessing.approve}
-              className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-            >
-              {isProcessing.approve ? (
-                <><Spinner className="w-4 h-4" /><span>Approving...</span></>
-              ) : (
-                <><CheckCircle className="w-4 h-4" /><span>Approve Device</span></>
-              )}
+            <Button onClick={handleApprove} disabled={isProcessing.approve}
+              className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+              {isProcessing.approve ? <><Spinner className="w-4 h-4" /><span>Approving...</span></> : <><CheckCircle className="w-4 h-4" /><span>Approve Device</span></>}
             </Button>
-
-            <Button
-              onClick={handleDeny}
-              disabled={isProcessing.deny}
-              className="w-full h-11 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-            >
-              {isProcessing.deny ? (
-                <><Spinner className="w-4 h-4" /><span>Denying...</span></>
-              ) : (
-                <><XCircle className="w-4 h-4" /><span>Deny Device</span></>
-              )}
+            <Button onClick={handleDeny} disabled={isProcessing.deny}
+              className="w-full h-11 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+              {isProcessing.deny ? <><Spinner className="w-4 h-4" /><span>Denying...</span></> : <><XCircle className="w-4 h-4" /><span>Deny Device</span></>}
             </Button>
           </div>
 
@@ -151,6 +124,14 @@ const DeviceApprovalPage = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const DeviceApprovalPage = () => {
+  return (
+    <Suspense fallback={<div className="flex flex-col items-center justify-center h-screen bg-background"><Spinner /></div>}>
+      <DeviceApprovalContent />
+    </Suspense>
   );
 };
 
