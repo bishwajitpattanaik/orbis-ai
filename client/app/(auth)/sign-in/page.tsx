@@ -13,7 +13,7 @@ const SignInContent = () => {
 
   useEffect(() => {
     if (!isPending && data?.session && data?.user) {
-      router.push(redirect || "/");
+      router.push(redirect || "/account");
     }
   }, [isPending, data, redirect, router]);
 

@@ -14,7 +14,7 @@ export const LoginForm = ({ redirectTo }: LoginFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const callbackURL = redirectTo ? `${appUrl}${redirectTo}` : appUrl;
+  const callbackURL = redirectTo ? `${appUrl}${redirectTo}` : `${appUrl}/account`;
 
   return (
     <div className="flex flex-col gap-6 justify-center items-center">
