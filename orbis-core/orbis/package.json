@@ -1,0 +1,61 @@
+{
+  "name": "@orbis-ai/orbis",
+  "version": "0.1.13",
+  "description": "Set your ideas in motion - The AI that lives in your terminal!",
+  "author": "Bishwajit Pattanaik",
+  "license": "MIT",
+  "type": "module",
+  "module": "index.ts",
+  "main": "index.ts",
+  "bin": {
+    "orbis": "./index.ts"
+  },
+  "files": [
+    "index.ts",
+    "ai/",
+    "auth/",
+    "modes/",
+    "services/",
+    "tui/"
+  ],
+  "keywords": [
+    "ai",
+    "cli",
+    "terminal",
+    "agent",
+    "orbis",
+    "llm",
+    "openrouter",
+    "gemini"
+  ],
+  "engines": {
+    "node": ">=22",
+    "bun": ">=1.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^25.9.1",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "3.0.0",
+    "@clack/core": "^1.4.0",
+    "@clack/prompts": "^1.5.0",
+    "@mendable/firecrawl-js": "^4.25.2",
+    "@openrouter/ai-sdk-provider": "2.9.0",
+    "@types/marked-terminal": "^6.1.1",
+    "ai": "6.0.194",
+    "better-auth": "^1.6.20",
+    "boxen": "^8.0.1",
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3",
+    "diff": "^9.0.0",
+    "dotenv": "^17.4.2",
+    "figlet": "^1.11.0",
+    "marked": "^15.0.0",
+    "marked-terminal": "^7.3.0",
+    "open": "^11.0.0",
+    "telegraf": "^4.16.3",
+    "yocto-spinner": "^1.2.0"
+  }
+}

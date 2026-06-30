@@ -1,0 +1,20 @@
+# env & secrets
+.env
+.env.*
+
+# prisma (server-side, not needed in CLI)
+prisma/
+
+# deps & lock
+node_modules/
+bun.lock
+
+# config files
+tsconfig.json
+.gitignore
+
+# misc
+pwr.txt
+*.log
+
+# keep README.md and LICENSE (npm shows these)
