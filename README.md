@@ -1,483 +1,369 @@
-<p align="center">
-  <img src="https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js">
-  <img src="https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js">
-  <img src="https://img.shields.io/badge/Prisma-5.22-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma">
-  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
-  <img src="https://img.shields.io/badge/Google_AI-Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Google AI">
-</p>
+# Orbis
 
-<h1 align="center">Luffy CLI</h1>
+> Set your ideas in motion with Orbis, AI that lives on your terminal.
 
-<p align="center">
-  <strong>An AI-Powered Command-Line Interface Inspired by One Piece</strong>
-</p>
+A production-deployed, AI-powered command-line companion built with Bun, TypeScript, and the Vercel AI SDK — ask questions, run autonomous agent tasks, and plan complex work, all from a single CLI, with a Telegram bridge for when you're away from your machine.
 
-<p align="center">
-  Automate tasks and ship faster with an AI-powered CLI companion.
-</p>
-
-<p align="center">
-  <a href="#features">Features</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#usage">Usage</a> •
-  <a href="#ai-modes">AI Modes</a> •
-  <a href="#tech-stack">Tech Stack</a> •
-  <a href="#contributing">Contributing</a>
-</p>
+📦 **Install:** `npm install -g @orbis-ai/orbis`
+🌐 **Web Console:** [orbis-ai-bishwajitpattanaik.vercel.app](https://orbis-ai-bishwajitpattanaik.vercel.app/)
 
 ---
 
-## Features
+## 💻 Tech Stack
 
-### Secure Authentication
-- OAuth 2.0 Device Flow for secure CLI authentication
-- GitHub OAuth integration
-- Persistent session management
-- Secure token storage
+**CLI**
 
-### AI-Powered Modes
+| Technology | Purpose |
+|---|---|
+| Bun | Runtime — fast cold starts for a CLI tool |
+| TypeScript | Type safety across CLI and backend |
+| Vercel AI SDK | Model-agnostic AI integration |
+| Commander.js | CLI command parsing |
 
-| Mode | Description |
-|------|-------------|
-| Chat Mode | Have natural conversations with your AI assistant |
-| Tool Mode | Use tools like Google Search, code execution, and URL fetching |
-| Agent Mode | Generate complete projects from plain-language descriptions |
+**Backend**
 
-### CLI Experience
-- Pirate-themed interface inspired by One Piece
-- Colorful, intuitive prompts
-- Markdown rendering in terminal
-- Conversation history tracking
+| Technology | Purpose |
+|---|---|
+| Node.js | Runtime environment |
+| Express.js | Web framework / API server |
+| OAuth 2.0 Device Flow | CLI authentication |
+
+**Cloud Services**
+
+| Service | Purpose |
+|---|---|
+| Render | Backend API hosting |
+| Vercel | Web client hosting (OAuth approval screen) |
+| npm Registry | CLI package distribution (`@orbis-ai/orbis`) |
+| Telegram Bot API | Mobile access to the same backend |
 
 ---
 
-## Project Structure
+## ✨ Features
+
+**🧠 Ask Mode**
+- Fast, single-shot questions and answers
+- No session setup — just ask and get a terminal-rendered response
+
+**🤖 Agent Mode**
+- Describe a goal in plain language
+- Orbis autonomously reads/writes files and executes steps to complete it
+
+**📋 Plan Mode**
+- Step-by-step plan generated before any changes are made
+- Useful for reviewing an approach before committing to it
+
+**📱 Telegram Mode**
+- Same AI backend, accessible from a Telegram chat
+- Check on tasks or ask questions away from your machine
+
+**🔐 Auth**
+- OAuth 2.0 Device Authorization flow (same pattern as the GitHub CLI)
+- Bring-your-own API key — usage and cost stay under your control
+
+---
+
+## 🚀 Deployment Architecture
 
 ```
-AI-Powered-CLI/
-├── client/                           # Next.js frontend
-│   ├── app/
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   ├── page.tsx
-│   │   ├── (auth)/
-│   │   │   ├── layout.tsx
-│   │   │   └── sign-in/
-│   │   │       └── page.tsx
-│   │   ├── approve/
-│   │   │   └── page.tsx
-│   │   └── device/
-│   │       └── page.tsx
-│   ├── components/
-│   │   ├── login-form.tsx
-│   │   └── ui/                       # shadcn/ui components
-│   ├── hooks/
-│   │   └── use-mobile.ts
-│   ├── lib/
-│   │   ├── auth-client.ts
-│   │   └── utils.ts
-│   └── public/
+                         Developer Terminal
+                                │
+                                ▼
+                 ┌──────────────────────────┐
+                 │   Orbis CLI (Bun + TS)    │
+                 │  npm i -g @orbis-ai/orbis │
+                 └────────────┬─────────────┘
+                              │ HTTPS API calls
+                              │ device-flow auth token
+                              ▼
+                 ┌──────────────────────────┐
+                 │     Render (Backend)      │
+                 │   Node.js + Express API   │
+                 │   /auth   /ask  /agent    │
+                 └────────────┬─────────────┘
+                              │
+              ┌───────────────┼───────────────┐
+              │               │               │
+              ▼               ▼               ▼
+  ┌─────────────────┐ ┌───────────────┐ ┌──────────────────┐
+  │  Web Client       │ │  AI Provider   │ │  Telegram Bot API │
+  │  (Vercel)          │ │ (via AI SDK)   │ │                    │
+  │  OAuth approval     │ └───────────────┘ └──────────────────┘
+  └─────────────────┘
+```
+
+| Layer | Platform | URL |
+|---|---|---|
+| CLI | npm | [@orbis-ai/orbis](https://www.npmjs.com/package/@orbis-ai/orbis) |
+| Backend | Render | API server |
+| Web Client | Vercel | [orbis-ai-rose.vercel.app](https://orbis-ai-rose.vercel.app) |
+| Bot | Telegram | Telegram Bot API |
+
+**Architecture:**
+- The CLI is published to npm and runs locally on Bun, calling the backend for every AI request.
+- The Express backend, hosted on **Render**, handles auth, mode routing, and calls out to the configured AI provider via the **Vercel AI SDK**.
+- Authentication uses the **OAuth Device Authorization Grant** — the CLI requests a code, the developer approves it in the browser via the Vercel-hosted web client, and the CLI polls for the resulting token.
+- The **Telegram bot** talks to the same backend, giving a second front-end onto the same AI logic.
+
+---
+
+## 📁 Project Structure
+
+```
+orbis-core/
 │
-└── server/                           # Backend and CLI
-    ├── src/
-    │   ├── index.js                  # Express server entry
-    │   ├── cli/
-    │   │   ├── main.js               # CLI entry point
-    │   │   ├── ai/
-    │   │   │   └── google.service.js # Google AI service
-    │   │   ├── chat/
-    │   │   │   ├── chat-with-ai.js        # Chat mode
-    │   │   │   ├── chat-with-ai-tool.js   # Tool mode
-    │   │   │   └── chat-with-ai-agent.js  # Agent mode
-    │   │   └── commands/
-    │   │       ├── auth/
-    │   │       │   ├── login.js
-    │   │       │   ├── logout.js
-    │   │       │   └── whoami.js
-    │   │       └── ai/
-    │   │           └── wakeUp.js
-    │   ├── config/
-    │   │   ├── agent.config.js       # Agent mode config
-    │   │   ├── google.config.js      # Google AI config
-    │   │   └── tool.config.js        # Tool definitions
-    │   ├── lib/
-    │   │   ├── auth.js               # Better Auth setup
-    │   │   ├── db.js                 # Prisma client
-    │   │   └── token.js              # Token management
-    │   └── service/
-    │       └── chat.service.js       # Chat business logic
-    └── prisma/
-        ├── schema.prisma             # Database schema
-        └── migrations/               # Database migrations
+├── client/                         # Web client (OAuth device approval UI)
+│
+├── orbis/                          # CLI package (published to npm)
+│   ├── ai/
+│   │   ├── ai.config.ts            # AI provider configuration
+│   │   └── index.ts
+│   │
+│   ├── auth/
+│   │   ├── login.ts                # OAuth device flow — initiate login
+│   │   ├── logout.ts                # Clear stored credentials
+│   │   ├── token.ts                 # Token storage & refresh
+│   │   ├── user.ts                  # User session helpers
+│   │   └── whoami.ts                # Display current authenticated user
+│   │
+│   ├── modes/
+│   │   ├── agent/                   # Agent mode — autonomous task execution
+│   │   │   ├── action-tracker.ts    # Tracks actions taken during a run
+│   │   │   ├── agent-tools.ts       # Tool definitions available to the agent
+│   │   │   ├── approval.ts          # Human-in-the-loop approval gating
+│   │   │   ├── diff-view.ts         # Renders file diffs before applying
+│   │   │   ├── orchestrator.ts      # Agent run loop / control flow
+│   │   │   ├── tool-executor.ts     # Executes tool calls
+│   │   │   └── types.ts
+│   │   │
+│   │   ├── ask/                     # Ask mode — single-shot Q&A
+│   │   │   └── orchestrator.ts
+│   │   │
+│   │   ├── plan/                    # Plan mode — step-by-step planning
+│   │   │   ├── orchestrator.ts
+│   │   │   ├── planner.ts           # Generates the plan
+│   │   │   ├── selection.ts         # Step selection / approval logic
+│   │   │   ├── types.ts
+│   │   │   └── web-tools.ts         # Web lookups used during planning
+│   │   │
+│   │   └── telegram/                # Telegram mode — mobile bridge
+│   │       ├── agent-run.ts         # Runs agent tasks from Telegram
+│   │       ├── approval-session.ts  # Approval flow over Telegram
+│   │       ├── auth.ts              # Telegram-side auth linking
+│   │       ├── constants.ts
+│   │       ├── handlers.ts          # Telegram message/command handlers
+│   │       ├── index.ts
+│   │       ├── plan-session.ts      # Plan mode over Telegram
+│   │       └── text.ts              # Message formatting helpers
+│   │
+│   ├── prisma/                      # Database schema & migrations
+│   │
+│   ├── services/
+│   │   └── chat.service.ts          # Shared chat/session business logic
+│   │
+│   ├── tui/                         # Terminal UI layer
+│   │   ├── init.ts                 # TUI bootstrap
+│   │   ├── terminal-md.ts          # Markdown rendering in-terminal
+│   │   └── wakeup.ts               # Interactive mode-selection menu
+│   │
+│   ├── cli.ts                       # CLI entry point
+│   ├── index.ts
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── bun.lock
+│   ├── tsconfig.json
+│   ├── README.md
+│   ├── .gitignore
+│   └── .npmignore
+│
+└── server/                          # Backend API
+    ├── README.md
+    └── .gitignore
 ```
 
 ---
 
-## Installation
+## ⚙️ Setup & Installation
 
-### Prerequisites
+### 🔧 Backend
 
-- **Node.js** 18 or higher
-- **PostgreSQL** (or compatible database)
-- **Google AI API Key** (for Gemini)
-- **GitHub OAuth App** (for authentication)
-
-### Step 1: Clone the Repository
+**1. Clone the repository**
 
 ```bash
-git clone https://github.com/Abhay-0103/AI-Powered-CLI.git
-cd AI-Powered-CLI
+git clone https://github.com/bishwajitpattanaik/orbis-ai.git
+cd orbis-ai
 ```
 
-### Step 2: Install Dependencies
+**2. Install backend dependencies**
 
 ```bash
-# Install client dependencies
-cd client
-npm install
-
-# Install server dependencies
-cd ../server
+cd server
 npm install
 ```
 
-### Step 3: Configure Environment Variables
+**3. Configure environment variables**
 
-Create a `.env` file in the `server` directory:
+Create a `.env` file inside the `server` folder:
 
 ```env
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/luffy_cli"
-
-# Authentication
-GITHUB_CLIENT_ID="your-github-client-id"
-GITHUB_CLIENT_SECRET="your-github-client-secret"
-BETTER_AUTH_SECRET="your-secret-key-min-32-chars"
-
-# Google AI
-GOOGLE_GENERATIVE_AI_API_KEY="your-google-ai-api-key"
-
-# Server
 PORT=3001
-CLIENT_URL="http://localhost:3000"
+CLIENT_URL=http://localhost:3000
+AI_PROVIDER_API_KEY=your_provider_api_key
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 ```
 
-### Step 4: Set Up Database
+**4. Start the backend server**
 
 ```bash
-cd server
-
-# Generate Prisma client
-npx prisma generate
-
-# Run migrations
-npx prisma migrate dev
-```
-
-### Step 5: Install CLI Globally
-
-```bash
-cd server
-npm link
-```
-
-### Step 6: Start Development Servers
-
-```bash
-# Terminal 1 - Start Client (Frontend)
-cd client
-npm run dev
-
-# Terminal 2 - Start Server (Backend)
-cd server
 npm run dev
 ```
 
+> Server runs on `http://localhost:3001`
+
 ---
 
-## Usage
+### 🎨 Web Client
 
-### Authentication Commands
+**5. Install client dependencies**
 
 ```bash
-# Login to Luffy CLI (opens browser for OAuth)
-luffy login
-
-# Check current authenticated user
-luffy whoami
-
-# Logout and clear credentials
-luffy logout
+cd ../client
+npm install
 ```
 
-### Start the AI Interface
+**6. Start the client**
 
 ```bash
-# Start the AI interface
-luffy wakeup
+npm run dev
 ```
 
-This opens an interactive menu where you can choose a mode:
-
-```
-╔═══════════════════════════════════════╗
-║                                       ║
-║          Straw Hat Pirates            ║
-║                                       ║
-║            Ahoy, Captain              ║
-║                                       ║
-║   Choose your adventure below...      ║
-║                                       ║
-╚═══════════════════════════════════════╝
-
-Choose your path:
-- Chat Mode
-- Tool Mode
-- Agent Mode
-```
+> Client runs on `http://localhost:3000`
 
 ---
 
-## AI Modes
+### 🖥️ CLI
 
-### Chat Mode
-
-Have natural conversations with your AI assistant.
+**7. Install Orbis globally**
 
 ```bash
-luffy wakeup
-# Select: Chat Mode
+npm install -g @orbis-ai/orbis
 ```
 
-**Features:**
-- Natural language conversations
-- Markdown-formatted responses
-- Conversation history saved to database
-- Context-aware responses
-
----
-
-### Tool Mode
-
-Chat with access to powerful tools.
+**8. Authenticate**
 
 ```bash
-luffy wakeup
-# Select: Tool Mode
+orbis login
 ```
 
-**Available Tools:**
-
-| Tool | Description |
-|------|-------------|
-| **Google Search** | Search the web for real-time information |
-| **Code Execution** | Run JavaScript/Python code snippets |
-| **URL Context** | Fetch and analyze content from URLs |
-
-**Example:**
-```
-You: Search for the latest Next.js features
-AI: [Uses Google Search tool]
-    Here are the latest Next.js 15 features...
-```
-
----
-
-### Agent Mode
-
-Generate complete applications from natural language descriptions.
+**9. Start using it**
 
 ```bash
-luffy wakeup
-# Select: Agent Mode
+orbis ask "explain this error"
+orbis agent "set up a Vitest config for this repo"
+orbis plan "migrate this Express app to Fastify"
 ```
 
-**Capabilities:**
-- Generate complete applications from descriptions
-- Create all necessary files and folders
-- Include setup instructions and commands
-- Generate production-ready code
+> Note: Backend and web client must both be running for local development of the auth flow.
 
-**Example Prompts:**
-```
-"Build a todo app with React and Tailwind"
-"Create a REST API with Express and MongoDB"
-"Make a weather app using OpenWeatherMap API"
-"Build a portfolio website with Next.js"
-```
+---
 
-**Output:**
-```
-Building your application...
+## 🔗 Backend API Endpoints
 
-Project created: todo-app-react
+Base URL: `http://localhost:3001/api`
 
-Project structure:
-todo-app-react/
-├── index.html
-├── styles.css
-├── app.js
-└── README.md
+---
 
-Application created successfully.
+### 🔐 Auth Routes — `/api/auth`
 
-Location: C:\Users\...\todo-app-react
+| Method | Endpoint | Description | Auth Required | Body |
+|---|---|---|---|---|
+| POST | `/api/auth/device/code` | Request a device code | No | - |
+| POST | `/api/auth/device/token` | Poll for access token | No | `json: device_code` |
+| GET | `/api/auth/whoami` | Get current authenticated user | Yes | - |
+| POST | `/api/auth/logout` | Revoke stored token | Yes | - |
 
-Next steps:
-  cd todo-app-react
-  open index.html
+**Example Response — POST `/api/auth/device/code`**
+
+```json
+{
+  "device_code": "abc123",
+  "user_code": "WXYZ-1234",
+  "verification_uri": "https://orbis-ai-rose.vercel.app/device",
+  "expires_in": 900
+}
 ```
 
 ---
 
-## Authentication Flow
+### 🤖 AI Routes — `/api/ai`
 
-The CLI uses OAuth 2.0 Device Authorization Grant:
+| Method | Endpoint | Description | Auth Required | Body |
+|---|---|---|---|---|
+| POST | `/api/ai/ask` | Single-shot Q&A | Yes | `json: prompt` |
+| POST | `/api/ai/agent` | Run an autonomous agent task | Yes | `json: goal` |
+| POST | `/api/ai/plan` | Generate a step-by-step plan | Yes | `json: goal` |
 
+**Example Response — POST `/api/ai/ask`**
+
+```json
+{
+  "message": "Response generated successfully",
+  "response": "This error occurs because..."
+}
 ```
-┌─────────────┐          ┌─────────────┐          ┌─────────────┐
-│     CLI     │          │   Server    │          │   Browser   │
-└──────┬──────┘          └──────┬──────┘          └──────┬──────┘
-       │                        │                        │
-       │  1. Request Code       │                        │
-       │───────────────────────>│                        │
-       │                        │                        │
-       │  2. Return Code + URL  │                        │
-       │<───────────────────────│                        │
-       │                        │                        │
-       │  3. Open Browser ──────────────────────────────>│
-       │                        │                        │
-       │                        │   4. User Enters Code  │
-       │                        │<───────────────────────│
-       │                        │                        │
-       │                        │   5. User Approves     │
-       │                        │<───────────────────────│
-       │                        │                        │
-       │  6. Poll for Token     │                        │
-       │───────────────────────>│                        │
-       │                        │                        │
-       │  7. Return Token       │                        │
-       │<───────────────────────│                        │
-       │                        │                        │
-       │  8. Store Locally      │                        │
-       └────────────────────────┘                        │
+
+**Example Response — POST `/api/ai/plan`**
+
+```json
+{
+  "message": "Plan generated successfully",
+  "steps": [
+    "Install Fastify and remove Express dependencies",
+    "Convert route handlers to Fastify's plugin syntax",
+    "Update server entry point and error handling"
+  ]
+}
 ```
 
 ---
 
-## Tech Stack
-
-### Client (Frontend)
-
-| Technology | Purpose |
-|------------|---------|
-| **Next.js 16** | React framework with App Router |
-| **TypeScript** | Type safety |
-| **Tailwind CSS** | Utility-first styling |
-| **shadcn/ui** | Beautiful UI components |
-| **Better Auth** | Authentication client |
-
-### Server (Backend & CLI)
-
-| Technology | Purpose |
-|------------|---------|
-| **Node.js** | JavaScript runtime |
-| **Express.js** | Web server framework |
-| **Better Auth** | Authentication server |
-| **Prisma** | Database ORM |
-| **Google Gemini AI** | AI language model |
-| **Commander.js** | CLI framework |
-| **@clack/prompts** | Beautiful CLI prompts |
-| **Chalk** | Terminal styling |
-| **Boxen** | Terminal boxes |
-| **Figlet** | ASCII art text |
-| **Marked** | Markdown parsing |
-
----
-
-## CLI Commands Reference
+## 🖥️ CLI Command Reference
 
 | Command | Description |
-|---------|-------------|
-| `luffy login` | Authenticate using OAuth Device Flow |
-| `luffy logout` | Log out and clear stored credentials |
-| `luffy whoami` | Display current authenticated user |
-| `luffy wakeup` | Start AI interface with mode selection |
-| `luffy --help` | Show help information |
-| `luffy --version` | Show version number |
+|---|---|
+| `orbis login` | Authenticate via OAuth device flow |
+| `orbis logout` | Log out and clear stored credentials |
+| `orbis whoami` | Display current authenticated user |
+| `orbis wakeup` | Launch the interactive terminal UI with mode selection (Ask / Agent / Plan) |
+| `orbis ask "<prompt>"` | Ask a one-off question |
+| `orbis agent "<goal>"` | Run an autonomous agent task |
+| `orbis plan "<goal>"` | Generate a step-by-step plan |
+| `orbis --help` | Show help information |
+| `orbis --version` | Show version number |
+
+**CLI → Backend API Mapping**
+
+| CLI Command | Backend Endpoint |
+|---|---|
+| Login | POST `/api/auth/device/code` → poll `/api/auth/device/token` |
+| Whoami | GET `/api/auth/whoami` |
+| Logout | POST `/api/auth/logout` |
+| Wakeup | Launches local TUI — routes to Ask / Agent / Plan endpoints based on selection |
+| Ask | POST `/api/ai/ask` |
+| Agent | POST `/api/ai/agent` |
+| Plan | POST `/api/ai/plan` |
 
 ---
 
-## Configuration
+## 👤 Author
 
-### Google AI API Key
+Built with ❤️ by **Bishwajit Pattanaik**
 
-1. Go to [Google AI Studio](https://aistudio.google.com/)
-2. Create a new API key
-3. Add to your `.env` file:
-   ```env
-   GOOGLE_GENERATIVE_AI_API_KEY="your-api-key"
-   ```
-
-### GitHub OAuth App
-
-1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
-2. Create a new OAuth App
-3. Set callback URL to `http://localhost:3000/api/auth/callback/github`
-4. Add credentials to your `.env` file
+- 🔗 GitHub: [github.com/bishwajitpattanaik](https://github.com/bishwajitpattanaik)
+- 💼 LinkedIn: [linkedin.com/bishwajit-pattanaik-717818320](https://www.linkedin.com/in/bishwajit-pattanaik-717818320/)
 
 ---
 
-## Contributing
+## 🛠️ Support
 
-Contributions are welcome! Here's how you can help:
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to the branch (`git push origin feature/amazing-feature`)
-5. **Open** a Pull Request
-
-### Development Setup
-
-```bash
-# Clone your fork
-git clone https://github.com/YOUR_USERNAME/AI-Powered-CLI.git
-
-# Install dependencies
-cd AI-Powered-CLI/server
-npm install
-
-# Start development
-npm run dev
-```
-
----
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## Acknowledgments
-
-- Inspired by **One Piece** and the spirit of adventure
-- Built with [Google Gemini AI](https://ai.google.dev/)
-- UI components from [shadcn/ui](https://ui.shadcn.com/)
-- Authentication by [Better Auth](https://www.better-auth.com/)
-
----
-
-<p align="center">
-  <strong>"I'm gonna be the King of the Code!" - Luffy CLI</strong>
-</p>
-
-<p align="center">
-  Made by <a href="https://github.com/Abhay-0103">Abhay Singh</a>
-</p>
-
-<p align="center">
-  <a href="https://github.com/Abhay-0103/AI-Powered-CLI/issues">Report Bug</a> •
-  <a href="https://github.com/Abhay-0103/AI-Powered-CLI/issues">Request Feature</a>
-</p>
+For issues or questions, open an issue in the repository — [github.com/bishwajitpattanaik/orbis-ai/issues](https://github.com/bishwajitpattanaik/orbis-ai/issues)
