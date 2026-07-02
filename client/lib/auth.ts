@@ -7,10 +7,11 @@ const prisma = new PrismaClient();
 
 export const auth = betterAuth({
     database: prismaAdapter(prisma, { provider: "postgresql" }),
-    baseURL: "https://orbis-ai-bishwajitpattanaik.vercel.app",
+    baseURL: process.env.BETTER_AUTH_URL || "https://orbis-ai-l2n7.onrender.com",
     trustedOrigins: [
         "http://localhost:3000",
         "https://orbis-ai-bishwajitpattanaik.vercel.app",
+        "https://orbis-ai-l2n7.onrender.com",
     ],
     socialProviders: {
         github: {
