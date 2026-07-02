@@ -3,18 +3,18 @@ import { select, isCancel, note } from "@clack/prompts";
 import { runAgentMode } from "./agent/orchestrator";
 import { runAskMode } from "./ask/orchestrator";
 import { runPlanMode } from "./plan/orchestrator";
-import { readConfig } from "../tui/init";
+import { readConfig, runInit } from "../tui/init";
 
 export async function runCliMode(userId: string) {
-    const config = readConfig();
+    let config = readConfig();
 
     if (!config?.setupComplete) {
-        note(
-            'Run "orbis init" to set up your API key before using CLI mode.',
-            "Setup required"
-        );
-        return;
+        note("Let's get you set up first.", "Welcome to Orbis");
+        await runInit();
+        config = readConfig();
     }
+
+    if (!config?.setupComplete) return;
 
     while (true) {
         const mode = await select({

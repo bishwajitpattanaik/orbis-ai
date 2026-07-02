@@ -14,6 +14,9 @@ export type OrbisConfig = {
   geminiKey?: string;
   defaultModel?: string;
   openrouterModelId?: string;
+  firecrawlKey?: string;
+  groqKey?: string;
+  cerebrasKey?: string;
   setupComplete: boolean;
   createdAt: string;
 };
@@ -71,6 +74,15 @@ export async function runInit(force = false) {
         existing.openrouterModelId
           ? `Model       ${existing.openrouterModelId}`
           : `Model       not set`,
+        existing.firecrawlKey
+          ? `Firecrawl   ${maskKey(existing.firecrawlKey)}`
+          : `Firecrawl   not set (web research disabled)`,
+        existing.groqKey
+          ? `Groq        ${maskKey(existing.groqKey)}`
+          : `Groq        not set`,
+        existing.cerebrasKey
+          ? `Cerebras    ${maskKey(existing.cerebrasKey)}`
+          : `Cerebras    not set`,
       ].join("\n"),
       "Current setup"
     );
@@ -187,18 +199,28 @@ export async function runInit(force = false) {
     config.openrouterKey = orKey.trim();
 
     // ── model selection ───────────────────────────────────────────────────
+    p.note(
+      "Free models can hit temporary rate limits during peak hours — Orbis will automatically fall back to another free model if that happens.",
+      "Heads up"
+    );
+
     const modelChoice = await p.select({
       message: "Which OpenRouter model should Orbis use?",
       options: [
         {
-          value: "qwen/qwen3-coder:free",
-          label: "Qwen3 Coder (free)",
-          hint: "best free option for coding & tool use",
+          value: "openai/gpt-oss-120b:free",
+          label: "GPT-OSS 120B (free)",
+          hint: "99.9% uptime, strong tool-calling — recommended",
         },
         {
-          value: "nvidia/nemotron-3-ultra:free",
-          label: "Nemotron 3 Ultra (free)",
-          hint: "1M context, strong agentic reasoning",
+          value: "google/gemma-4-26b-a4b-it:free",
+          label: "Gemma 4 26B A4B (free)",
+          hint: "98.9% uptime, 262K context, native function calling",
+        },
+        {
+          value: "cohere/north-mini-code:free",
+          label: "Cohere North Mini Code (free)",
+          hint: "agentic coding model, 97.1% uptime",
         },
         {
           value: "deepseek/deepseek-v4-flash",
@@ -290,6 +312,162 @@ export async function runInit(force = false) {
     config.geminiKey = gemKey.trim();
   }
 
+  // ── firecrawl setup (optional) ──────────────────────────────────────────────
+  const wantsWeb = await p.confirm({
+    message: "Enable web research? (lets Orbis search & crawl the web during Ask/Plan/Agent mode)",
+    initialValue: true,
+  });
+
+  if (!p.isCancel(wantsWeb) && wantsWeb) {
+    const hasFcKey = await p.confirm({
+      message: "Do you already have a Firecrawl API key?",
+      initialValue: false,
+    });
+
+    if (!p.isCancel(hasFcKey) && !hasFcKey) {
+      p.note(
+        [
+          "1. Go to firecrawl.dev and create a free account",
+          "2. Copy your API key from the dashboard",
+          "3. Copy the key and come back here",
+          "",
+          "Firecrawl's free tier is enough for casual use.",
+        ].join("\n"),
+        "Get your key"
+      );
+
+      const open = await p.confirm({
+        message: "Open firecrawl.dev in your browser?",
+        initialValue: true,
+      });
+
+      if (!p.isCancel(open) && open) {
+        openBrowser("https://firecrawl.dev");
+        const s = p.spinner();
+        s.start("Opening browser");
+        await sleep(1500);
+        s.stop("Browser opened");
+      }
+    }
+
+    const fcKey = await p.password({
+      message: "Paste your Firecrawl API key (or press Enter to skip):",
+      validate(val) {
+        if (val && val.trim().length > 0 && val.trim().length < 10)
+          return "Key looks too short — check and try again.";
+      },
+    });
+
+    if (!p.isCancel(fcKey) && fcKey.trim()) {
+      config.firecrawlKey = fcKey.trim();
+    }
+  }
+
+  // ── groq + cerebras setup (optional direct-provider fallback) ──────────────
+  p.note(
+    [
+      "Groq and Cerebras each give their own independent free daily quota",
+      "separate from OpenRouter's shared free-tier cap. Adding either here",
+      "lets Orbis fall back to them if OpenRouter's free models are rate limited.",
+    ].join("\n"),
+    "Extra fallback (optional)"
+  );
+
+  const wantsDirectFallback = await p.confirm({
+    message: "Add Groq and/or Cerebras as extra fallback providers?",
+    initialValue: false,
+  });
+
+  if (!p.isCancel(wantsDirectFallback) && wantsDirectFallback) {
+    // ── groq ──
+    const hasGroqKey = await p.confirm({
+      message: "Do you already have a Groq API key?",
+      initialValue: false,
+    });
+
+    if (!p.isCancel(hasGroqKey) && !hasGroqKey) {
+      p.note(
+        [
+          "1. Go to console.groq.com and create a free account",
+          "2. Navigate to API Keys → Create Key",
+          "3. Copy the key and come back here",
+          "",
+          "No card required.",
+        ].join("\n"),
+        "Get your Groq key"
+      );
+
+      const openGroq = await p.confirm({
+        message: "Open console.groq.com in your browser?",
+        initialValue: true,
+      });
+
+      if (!p.isCancel(openGroq) && openGroq) {
+        openBrowser("https://console.groq.com/keys");
+        const s = p.spinner();
+        s.start("Opening browser");
+        await sleep(1500);
+        s.stop("Browser opened");
+      }
+    }
+
+    const groqKey = await p.password({
+      message: "Paste your Groq API key (or press Enter to skip):",
+      validate(val) {
+        if (val && val.trim().length > 0 && val.trim().length < 10)
+          return "Key looks too short — check and try again.";
+      },
+    });
+
+    if (!p.isCancel(groqKey) && groqKey.trim()) {
+      config.groqKey = groqKey.trim();
+    }
+
+    // ── cerebras ──
+    const hasCerebrasKey = await p.confirm({
+      message: "Do you already have a Cerebras API key?",
+      initialValue: false,
+    });
+
+    if (!p.isCancel(hasCerebrasKey) && !hasCerebrasKey) {
+      p.note(
+        [
+          "1. Go to cloud.cerebras.ai and create a free account",
+          "2. Navigate to API Keys → Create Key",
+          "3. Copy the key and come back here",
+          "",
+          "No card required.",
+        ].join("\n"),
+        "Get your Cerebras key"
+      );
+
+      const openCerebras = await p.confirm({
+        message: "Open cloud.cerebras.ai in your browser?",
+        initialValue: true,
+      });
+
+      if (!p.isCancel(openCerebras) && openCerebras) {
+        openBrowser("https://cloud.cerebras.ai");
+        const s = p.spinner();
+        s.start("Opening browser");
+        await sleep(1500);
+        s.stop("Browser opened");
+      }
+    }
+
+    const cerebrasKey = await p.password({
+      message: "Paste your Cerebras API key (or press Enter to skip):",
+      validate(val) {
+        if (val && val.trim().length > 0 && val.trim().length < 10)
+          return "Key looks too short — check and try again.";
+      },
+    });
+
+    if (!p.isCancel(cerebrasKey) && cerebrasKey.trim()) {
+      config.cerebrasKey = cerebrasKey.trim();
+    }
+  }
+
   // ── pick default if both ───────────────────────────────────────────────────
   if (provider === "both") {
     const defaultModel = await p.select({
@@ -332,6 +510,11 @@ export async function runInit(force = false) {
         : null,
       config.openrouterModelId ? `Model       ${config.openrouterModelId}` : null,
       config.geminiKey ? `Gemini      ${maskKey(config.geminiKey)}` : null,
+      config.firecrawlKey
+        ? `Firecrawl   ${maskKey(config.firecrawlKey)}`
+        : `Firecrawl   not set (web research disabled)`,
+      config.groqKey ? `Groq        ${maskKey(config.groqKey)}` : null,
+      config.cerebrasKey ? `Cerebras    ${maskKey(config.cerebrasKey)}` : null,
       `Default     ${config.defaultModel}`,
       ``,
       `Keys are stored locally. Orbis never sends them anywhere`,

@@ -7,7 +7,7 @@ import { ActionTracker } from "./action-tracker";
 import { ToolExecutor } from "./tool-executor";
 import { createAgentTools } from "./agent-tools";
 import { stepCountIs, ToolLoopAgent } from "ai";
-import { getAgentModel } from "../../ai";
+import { getAgentModel, generateWithFallback } from "../../ai/ai.config.ts";
 import { renderTerminalMarkdown } from "../../tui/terminal-md";
 import { runApprovalFlow } from "./approval";
 import { ChatService } from "../../services/chat.service";
@@ -325,17 +325,7 @@ export async function runAgentMode(userId: string) {
             const allMessages = await chatService.getMessages(conversation.id);
             const aiMessages = chatService.formatMessagesForAI(allMessages);
 
-            const agent = new ToolLoopAgent({
-                model: getAgentModel(),
-                stopWhen: stepCountIs(40),
-                instructions: [
-                    `Workspace root: ${config.codebasePath}`,
-                    "All changes are staged until the user approves them.",
-                ].join("\n"),
-                tools,
-            });
-
-            // ── Spinner While Agent Works ──
+// ── Spinner While Agent Works ──
             const s = yoctoSpinner({ text: chalk.cyanBright("Agent is working…") }).start();
 
             const historyContext =
@@ -346,19 +336,32 @@ export async function runAgentMode(userId: string) {
                     : "";
 
             let stepCount = 0;
-            const result = await agent.generate({
-                prompt: historyContext + trimmedGoal,
-                onStepFinish: ({ toolCalls }) => {
-                    stepCount++;
-                    for (const tc of toolCalls) {
-                        const preview = JSON.stringify(tc.input).slice(0, 100);
-                        s.text =
-                            chalk.cyanBright(`Step ${stepCount} › `) +
-                            chalk.bold(String(tc.toolName)) +
-                            " " +
-                            chalk.dim(preview + (preview.length >= 100 ? "…" : ""));
-                    }
-                },
+            const result = await generateWithFallback((modelId: string) => {
+                const agent = new ToolLoopAgent({
+                    model: getAgentModel(modelId),
+                    stopWhen: stepCountIs(40),
+                    instructions: [
+                        "You are Orbis, an AI coding agent with web research capabilities built by Bishwajit Pattanaik. You are not affiliated with any AI company or model provider. If asked who you are, respond that you are Orbis. Never mention Poolside, Qwen, OpenRouter, Google, or any underlying model/provider name, even if asked directly what model powers you.",
+                        `Workspace root: ${config.codebasePath}`,
+                        "All changes are staged until the user approves them.",
+                    ].join("\n"),
+                    tools,
+                });
+
+                return agent.generate({
+                    prompt: historyContext + trimmedGoal,
+                    onStepFinish: ({ toolCalls }) => {
+                        stepCount++;
+                        for (const tc of toolCalls) {
+                            const preview = JSON.stringify(tc.input).slice(0, 100);
+                            s.text =
+                                chalk.cyanBright(`Step ${stepCount} › `) +
+                                chalk.bold(String(tc.toolName)) +
+                                " " +
+                                chalk.dim(preview + (preview.length >= 100 ? "…" : ""));
+                        }
+                    },
+                });
             });
 
             s.success(chalk.greenBright(`Done — ${stepCount} step(s) completed.`));

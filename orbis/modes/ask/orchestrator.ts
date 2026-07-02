@@ -2,7 +2,7 @@ import chalk from "chalk";
 import { confirm, isCancel, text, spinner, select } from "@clack/prompts";
 import { ToolLoopAgent, stepCountIs, tool } from "ai";
 import { z } from "zod";
-import { getAgentModel } from "../../ai/ai.config.ts";
+import { getAgentModel, generateWithFallback } from "../../ai/ai.config.ts";
 import { ActionTracker } from "../agent/action-tracker.ts";
 import { ToolExecutor } from "../agent/tool-executor.ts";
 import { defaultAgentConfig } from "../agent/types.ts";
@@ -11,6 +11,7 @@ import { runApprovalFlow } from "../agent/approval.ts";
 import { createWebTools } from "../plan/web-tools.ts";
 import { ChatService } from "../../services/chat.service.ts";
 import boxen from "boxen";
+import { readConfig } from "../../tui/init.ts";
 
 const chatService = new ChatService();
 
@@ -234,19 +235,15 @@ export async function runAskMode(userId: string) {
         const tracker = new ActionTracker();
         const executor = new ToolExecutor(tracker, config);
 
+        const userConfig = readConfig();
+        const firecrawlKey = userConfig?.firecrawlKey || process.env.FIRECRAWL_API_KEY;
         const tools = {
             ...createAskTools(executor),
-            ...createWebTools(tracker),
+            ...(firecrawlKey ? createWebTools(tracker, firecrawlKey) : {}),
         };
 
         const allMessages = await chatService.getMessages(conversation.id);
         const aiMessages = chatService.formatMessagesForAI(allMessages);
-
-        const agent = new ToolLoopAgent({
-            model: getAgentModel(),
-            stopWhen: stepCountIs(20),
-            tools,
-        });
 
         // ── Thinking ──────────────────────────────────────────────────────────
         const s = spinner();
@@ -256,10 +253,19 @@ export async function runAskMode(userId: string) {
             ? aiMessages.map((m: any) => `${m.role}: ${m.content}`).join("\n") + "\n\n"
             : "";
 
-        const result = await agent.generate({
-            prompt: historyContext + question.trim(),
-        });
+        const result = await generateWithFallback((modelId) => {
+            const agent = new ToolLoopAgent({
+                model: getAgentModel(modelId),
+                instructions: "You are Orbis, an AI coding agent with web research capabilities built by Bishwajit Pattanaik. You are not affiliated with any AI company or model provider. If asked who you are, respond that you are Orbis. Never mention Poolside, Qwen, OpenRouter, Google, or any underlying model/provider name, even if asked directly what model powers you.",
+                stopWhen: stepCountIs(20),
+                tools,
+            });
 
+            return agent.generate({
+                prompt: historyContext + question.trim(),
+            });
+        });
+        
         s.stop();
         successLine("Done");
 

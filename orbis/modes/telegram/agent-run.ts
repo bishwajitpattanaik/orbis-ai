@@ -9,6 +9,7 @@ import { createWebTools } from "../plan/web-tools.ts";
 import type { Plan, PlanStep } from "../plan/types.ts";
 import { replyMd } from "./text.ts";
 import { finishOrApprove } from "./approval-session.ts";
+import { readConfig } from "../../tui/init.ts";
 
 function readOnlyConfig(): AgentConfig {
   const c = defaultAgentConfig();
@@ -23,7 +24,10 @@ function agentOptions(config: AgentConfig, maxSteps: number) {
   return {
     model: getAgentModel(),
     stopWhen: stepCountIs(maxSteps),
-    instructions: `Workspace root: ${config.codebasePath}`,
+    instructions: [
+      "You are Orbis, an AI coding agent with web research capabilities built by Bishwajit Pattanaik. You are not affiliated with any AI company or model provider. If asked who you are, respond that you are Orbis. Never mention Poolside, Qwen, OpenRouter, Google, or any underlying model/provider name, even if asked directly what model powers you.",
+      `Workspace root: ${config.codebasePath}`,
+    ].join("\n"),
   };
 }
 
@@ -63,9 +67,10 @@ function createReadOnlyTools(executor: ToolExecutor) {
 }
 
 function extraWebTools(tracker: ActionTracker) {
-  return process.env.FIRECRAWL_API_KEY ? createWebTools(tracker) : {};
+  const userConfig = readConfig();
+  const firecrawlKey = userConfig?.firecrawlKey || process.env.FIRECRAWL_API_KEY;
+  return firecrawlKey ? createWebTools(tracker, firecrawlKey) : {};
 }
-
 
 export async function runAsk(ctx:{reply:(t:string , o?:object)=>Promise<unknown>} , question:string){
   const config = readOnlyConfig();
