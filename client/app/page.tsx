@@ -108,17 +108,8 @@ function OrbitField() {
       <div className="absolute inset-0 rounded-full bg-teal-500/[0.06] blur-3xl" />
       <svg viewBox="0 0 480 480" className="absolute inset-0 h-full w-full">
         {ORBITS.map((o) => (
-          <circle
-            key={o.label}
-            cx="240"
-            cy="240"
-            r={o.radius}
-            fill="none"
-            stroke="#e4e4e7"
-            strokeWidth="1.5"
-          />
+          <circle key={o.label} cx="240" cy="240" r={o.radius} fill="none" stroke="#e4e4e7" strokeWidth="1.5" />
         ))}
-        <circle cx="240" cy="240" r="2.5" fill="#a1a1aa" />
       </svg>
       {ORBITS.map((o) => (
         <div
@@ -139,19 +130,8 @@ function OrbitField() {
         </div>
       ))}
       <style jsx>{`
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .orbit-spin {
-            animation: none !important;
-          }
-        }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) { .orbit-spin { animation: none !important; } }
       `}</style>
     </div>
   );
@@ -182,6 +162,81 @@ function OrbitBadge() {
           .orbit-pulse {
             animation: none !important;
           }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------------- */
+/* Hero terminal — animated typing cycle                                  */
+/* ---------------------------------------------------------------------- */
+
+const HERO_COMMANDS = [
+  { cmd: "orbis login", sub: "signing in" },
+  { cmd: "orbis wakeup", sub: "booting orbis" },
+  { cmd: "orbis agent", sub: "loading context" },
+  { cmd: "orbis ask", sub: "searching web" },
+  { cmd: "orbis plan", sub: "drafting steps" },
+  { cmd: "orbis logout", sub: "exiting orbis" },
+];
+
+const TYPE_SPEED = 60;
+const DELETE_SPEED = 30;
+const HOLD_AFTER_TYPE = 1200;
+const HOLD_AFTER_DELETE = 300;
+
+function HeroTerminal() {
+  const [cmdIndex, setCmdIndex] = useState(0);
+  const [text, setText] = useState("");
+  const [phase, setPhase] = useState<"typing" | "deleting">("typing");
+
+  useEffect(() => {
+    const full = HERO_COMMANDS[cmdIndex].cmd;
+    let timeout: ReturnType<typeof setTimeout>;
+
+    if (phase === "typing") {
+      if (text.length < full.length) {
+        timeout = setTimeout(() => setText(full.slice(0, text.length + 1)), TYPE_SPEED);
+      } else {
+        timeout = setTimeout(() => setPhase("deleting"), HOLD_AFTER_TYPE);
+      }
+    } else {
+      if (text.length > 0) {
+        timeout = setTimeout(() => setText(text.slice(0, -1)), DELETE_SPEED);
+      } else {
+        timeout = setTimeout(() => {
+          setCmdIndex((i) => (i + 1) % HERO_COMMANDS.length);
+          setPhase("typing");
+        }, HOLD_AFTER_DELETE);
+      }
+    }
+
+    return () => clearTimeout(timeout);
+  }, [text, phase, cmdIndex]);
+
+  return (
+    <div className="mx-auto mb-8 w-[150px] rounded-lg border border-zinc-700 bg-zinc-900 px-2.5 py-2 font-mono text-[10px] shadow-lg shadow-zinc-900/20">
+      <div className="mb-1.5 flex gap-1">
+        <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#FF5F56" }} />
+        <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#FFBD2E" }} />
+        <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#27C93F" }} />
+      </div>
+      <div className="whitespace-nowrap text-teal-400">
+        $ {text}
+        <span className="terminal-cursor">▌</span>
+      </div>
+      <div className="mt-1 text-zinc-500">
+        → {HERO_COMMANDS[cmdIndex].sub}
+        <span className="terminal-dots">...</span>
+      </div>
+      <style jsx>{`
+        @keyframes dots { 0%, 20% { opacity: 0.2; } 50% { opacity: 1; } 100% { opacity: 0.2; } }
+        .terminal-dots { animation: dots 1.6s ease-in-out infinite; }
+        @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+        .terminal-cursor { animation: blink 0.8s step-end infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .terminal-dots, .terminal-cursor { animation: none !important; }
         }
       `}</style>
     </div>
@@ -470,11 +525,13 @@ export default function Home() {
             <span className="text-teal-600">Only you decide what lands.</span>
           </h1>
 
-          <p className="mx-auto mb-8 max-w-xl text-base leading-relaxed text-zinc-500">
+<p className="mx-auto mb-8 max-w-xl text-base leading-relaxed text-zinc-500">
             Orbis answers questions, drafts execution plans, and writes code —
             but every file change sits staged for your review until you approve
             it.
           </p>
+
+          <HeroTerminal />
 
           <div className="mx-auto flex max-w-md flex-col items-center justify-center gap-3">
             <InstallPanel />

@@ -38,7 +38,7 @@ const DeviceApprovalContent = () => {
       await authClient.device.approve({ userCode: userCode! });
       toast.dismiss("loading");
       toast.success("Device approved successfully!", { id: "success" });
-      router.push("/");
+      router.push("/account");
     } catch (error) {
       toast.error("Failed to approve device.");
     } finally {
