@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Orbis CLI",
-  description: "Creating Orbis CLI",
+  title: "Orbis",
+  description: "Orbis: Set your ideas in motion with Orbis, AI that lives on your terminal.",
 };
 
 export default function RootLayout({
