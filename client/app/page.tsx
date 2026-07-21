@@ -839,11 +839,14 @@ export default function Home() {
             <a href="#install" className="transition-colors hover:text-zinc-900 dark:hover:text-zinc-50">
               Install
             </a>
+
+            <span className="h-3 w-px bg-zinc-300 dark:bg-zinc-700" aria-hidden="true" />
+
             <a
               href="https://www.linkedin.com/in/bishwajit-pattanaik-717818320/"
               target="_blank"
               rel="noreferrer"
-              className="transition-colors hover:text-zinc-900 dark:hover:text-zinc-50"
+              className="font-medium text-teal-600 transition-colors hover:text-teal-500 dark:text-teal-400 dark:hover:text-teal-300"
             >
               Reach out to me
             </a>
