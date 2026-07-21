@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Pixelify_Sans } from "next/font/google";
+import AsciinemaPlayerComponent from "@/components/ui/asciinemaPlayer";
 import {
   Terminal,
   MessageCircleQuestion,
@@ -20,6 +21,7 @@ import {
   X,
   Sun,
   Moon,
+  Linkedin,
 } from "lucide-react";
 
 const pixel = Pixelify_Sans({
@@ -353,22 +355,68 @@ function HeroTerminal() {
 }
 
 /* ---------------------------------------------------------------------- */
-/* Terminal cast placeholder                                              */
-/* ---------------------------------------------------------------------- */
+/* Terminal cast — lazy-mounts the asciinema player when scrolled into    */
+/* view, and unmounts (disposing the player) when it scrolls out.         */
+/*                                                                        */
+/* Each recording is 156 cols wide, but real content in every recording   */
+/* only ever uses roughly the left 84–86 columns — the rest is genuinely  */
+/* blank terminal for the entire session, not a rendering bug. These      */
+/* numbers come from actually replaying each .cast file through a real    */
+/* terminal emulator (xterm-headless) and measuring the true bounding box */
+/* of non-blank content across every frame — not eyeballed from a         */
+/* screenshot, which is why all three end up needing nearly the same crop */
+/* despite ask/plan/agent looking different in a still frame.             */
+/*                                                                        */
+/* Measured (full recordings):                                            */
+/*  - ask.cast:   84 cols x 41 rows real content                          */
+/*  - plan.cast:  86 cols x 41 rows real content                          */
+/*  - agent.cast: 84 cols x 41 rows real content                          */
+/*                                                                        */
+/* cols is set to measured width + a small margin so nothing real gets    */
+/* clipped. rows is deliberately cropped well below the recorded 41 —     */
+/* since this is a live terminal, older lines just scroll off the top of  */
+/* the visible window exactly like a real shorter terminal would; nothing */
+/* is lost, it's just a moving window over the last N lines. rows/cols is */
+/* kept at a consistent ratio (~0.27) across all three so the cards end   */
+/* up the same visual height at a given width instead of some being       */
+/* taller or shorter than the others.                                     */
+const CAST_CONFIG: Record<string, { cols: number; rows: number }> = {
+  "ask.cast": { cols: 100, rows: 27 },
+  "plan.cast": { cols: 104, rows: 28 },
+  "agent.cast": { cols: 100, rows: 27 },
+};
 
 function TerminalCast({
   castFile,
   title,
-  command,
   accent,
 }: {
   castFile: string;
   title: string;
-  command: string;
   accent: string;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  const { cols, rows } = CAST_CONFIG[castFile] ?? { cols: 100, rows: 27 };
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { threshold: 0.35 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg shadow-zinc-200/60 transition-colors dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-black/40">
+    <div
+      ref={containerRef}
+      className="mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg shadow-zinc-200/60 transition-colors dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-black/40"
+    >
       <div className="flex items-center gap-1.5 border-b border-zinc-200 bg-zinc-50/70 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/70">
         <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#FF5F56" }} />
         <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#FFBD2E" }} />
@@ -379,16 +427,27 @@ function TerminalCast({
           {title}
         </span>
       </div>
-      <div className="flex min-h-[220px] flex-col justify-center gap-2 bg-zinc-50/40 p-5 font-mono text-sm text-zinc-500 dark:bg-zinc-950/40 dark:text-zinc-500">
-        <div>
-          <span style={{ color: accent }}>$</span> {command}
-        </div>
-        <div className="flex items-center gap-1.5 pt-2">
-          <span className="h-3.5 w-1.5 animate-pulse bg-zinc-300 dark:bg-zinc-700" />
-          <span className="text-xs text-zinc-400 dark:text-zinc-600">
-            recording goes here — {castFile}
-          </span>
-        </div>
+
+      <div className="w-full overflow-hidden bg-zinc-950 p-2">
+        {inView ? (
+          <AsciinemaPlayerComponent
+            src={`/casts/${castFile}`}
+            cols={cols}
+            rows={rows}
+            fit="width"
+            className="[&_.ap-player]:!bg-transparent"
+          />
+        ) : (
+          <div className="flex aspect-video flex-col justify-center gap-2 p-3 font-mono text-sm text-zinc-500">
+            <div>
+              <span style={{ color: accent }}>$</span> orbis {title.split(": ")[1]?.split(" ")[0]}
+            </div>
+            <div className="flex items-center gap-1.5 pt-2">
+              <span className="h-3.5 w-1.5 bg-zinc-700" />
+              <span className="text-xs text-zinc-600">scroll to play</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -466,25 +525,25 @@ const STEPS = [
   {
     n: "01",
     icon: Terminal,
-    title: "Pick a mode",
-    body: "orbis ask, orbis plan, or orbis agent — how much control you hand over is your call, every session.",
+    title: "Log into Orbis",
+    body: "Sign in with GitHub to verify it's you, then enter the code it hands you back to bring your device into the session — no passwords, ever.",
   },
   {
     n: "02",
     icon: Eye,
-    title: "Orbis reads first",
-    body: "It explores the repo, gathers real context, and works out what a change would actually involve before proposing one.",
+    title: "Initialise your keys",
+    body: "The first run fires orbis init automatically via orbis wakeup cmd, walking you through your API keys. They're stored on your machine and never leave it",
   },
   {
     n: "03",
     icon: ClipboardCheck,
-    title: "You approve every write",
-    body: "Edits are staged as a diff, not applied. Nothing touches disk until you say yes.",
+    title: "Pick a mode and do great things",
+    body: "Ask, plan, or agent — once you're authenticated and initialized, every mode is one command away.",
   },
 ];
 
 const NAV_ITEMS = [
-  { id: "", label: "Home" },
+  { id: "home", label: "Home" },
   { id: "ask", label: "Features" },
   { id: "how", label: "How it works" },
   { id: "install", label: "Install" },
@@ -531,7 +590,7 @@ export default function Home() {
       {/* Top bar */}
       <header className="fixed inset-x-0 top-0 z-30">
         <div className="relative flex items-center justify-between px-6 py-4 sm:px-8">
-          <a href="#" className="text-sm font-bold tracking-wide text-zinc-900 dark:text-zinc-50">
+          <a href="#home" className="text-sm font-bold tracking-wide text-zinc-900 dark:text-zinc-50">
             <span className="text-teal-600 dark:text-teal-400">⬡</span> ORBIS
           </a>
 
@@ -605,12 +664,12 @@ export default function Home() {
         <div className="mt-6 flex items-center gap-4">
           <ThemeToggle theme={theme} toggle={toggleTheme} />
           <a
-            href="https://github.com/bishwajitpattanaik/orbis-ai"
+            href="https://linkedin.com/in/YOUR_HANDLE"
             target="_blank"
             rel="noreferrer"
             className="text-zinc-500 dark:text-zinc-400"
           >
-            <Github className="h-5 w-5" />
+            <Linkedin className="h-5 w-5" />
           </a>
           <Link
             href="/sign-in"
@@ -623,7 +682,7 @@ export default function Home() {
       </div>
 
       {/* Hero */}
-      <section className="relative mx-auto max-w-3xl overflow-hidden px-6 pb-16 pt-24 text-center">
+      <section id="home" className="relative mx-auto max-w-3xl overflow-hidden px-6 pb-16 pt-24 text-center">
         <OrbitField />
 
         <div className="relative z-10">
@@ -706,7 +765,6 @@ export default function Home() {
             <TerminalCast
               castFile={mode.castFile}
               title={`orbis: ${mode.label.toLowerCase()} mode`}
-              command={mode.command}
               accent={mode.accent}
             />
           </div>
@@ -723,7 +781,7 @@ export default function Home() {
             <span className="text-teal-600 dark:text-teal-400">⬡</span> how it works
           </div>
           <h2 className="mx-auto max-w-xl text-2xl font-semibold leading-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl">
-            Every mode follows the same orbit.
+            See how the world of Orbis functions.
           </h2>
         </div>
 
@@ -782,12 +840,12 @@ export default function Home() {
               Install
             </a>
             <a
-              href="https://github.com/bishwajitpattanaik/orbis-ai"
+              href="https://www.linkedin.com/in/bishwajit-pattanaik-717818320/"
               target="_blank"
               rel="noreferrer"
               className="transition-colors hover:text-zinc-900 dark:hover:text-zinc-50"
             >
-              GitHub
+              Reach out to me
             </a>
           </nav>
           <p className="text-xs text-zinc-400 dark:text-zinc-600">
