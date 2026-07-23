@@ -4,7 +4,9 @@ import dotenv from "dotenv";
 import { toNodeHandler, fromNodeHeaders } from "better-auth/node";
 import cors from "cors";
 import conversationRoutes from "./routes/conversations.js";
-
+import telemetryRouter from "./routes/telemetry-route.js";
+   
+   
 // Local Imports
 import { auth } from "./lib/auth.js";
 
@@ -37,6 +39,8 @@ app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use(express.json());
 
 app.use("/api/conversations", conversationRoutes);
+
+app.use(telemetryRouter);
 
 app.get("/api/me", async (req, res) => {
   const session = await auth.api.getSession({
