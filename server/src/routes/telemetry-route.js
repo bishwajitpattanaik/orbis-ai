@@ -20,12 +20,6 @@ const INSTALL_COUNT_KEY = "orbis:install_count"; // simple counter
 // need CORS at all. Update this if your Vercel URL ever changes.
 const ALLOWED_ORIGIN = "https://orbis-ai-bishwajitpattanaik.vercel.app";
 
-// Allow your landing page's origin to call the public count endpoint
-// from the browser. Only needed for GET /api/telemetry/count — the CLI's
-// POST to /api/telemetry/install isn't a browser request, so it doesn't
-// need CORS at all.
-const ALLOWED_ORIGIN = "https://orbis-ai-bishwajitpattanaik.vercel.app";
-
 async function notifyDiscord(content) {
   if (!DISCORD_WEBHOOK_URL) return;
 
