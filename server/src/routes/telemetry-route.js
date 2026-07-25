@@ -14,11 +14,14 @@ const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 const INSTALL_IDS_KEY = "orbis:install_ids"; // Redis Set, for dedupe
 const INSTALL_COUNT_KEY = "orbis:install_count"; // simple counter
 
-// Allow your landing page's origin to call the public count endpoint
-// from the browser. Only needed for GET /api/telemetry/count — the CLI's
-// POST to /api/telemetry/install isn't a browser request, so it doesn't
-// need CORS at all. Update this if your Vercel URL ever changes.
-const ALLOWED_ORIGIN = "https://orbis-ai-bishwajitpattanaik.vercel.app";
+// Origins allowed to call the public count endpoint from the browser.
+// Only needed for GET /api/telemetry/count — the CLI's POST to
+// /api/telemetry/install isn't a browser request, so it doesn't need CORS
+// at all. Add any other local ports / preview domains here as needed.
+const ALLOWED_ORIGINS = new Set([
+  "https://orbis-ai-bishwajitpattanaik.vercel.app",
+  "http://localhost:3000",
+]);
 
 async function notifyDiscord(content) {
   if (!DISCORD_WEBHOOK_URL) return;
@@ -57,7 +60,10 @@ router.post("/api/telemetry/install", async (req, res) => {
 });
 
 router.get("/api/telemetry/count", async (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
 
   try {
     const [installs, users] = await Promise.all([
