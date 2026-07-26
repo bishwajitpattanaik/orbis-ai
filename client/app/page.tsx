@@ -1,10 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Pixelify_Sans } from "next/font/google";
 import AsciinemaPlayerComponent from "@/components/ui/asciinemaPlayer";
+import { LiveUserCounter } from "@/components/ui/LiveUserCounter";
 import {
   Terminal,
   MessageCircleQuestion,
@@ -686,7 +687,7 @@ export default function Home() {
         <OrbitField />
 
         <div className="relative z-10">
-          <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-[11px] text-zinc-500 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+          <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-[11px] text-zinc-500 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
             <Terminal className="h-3 w-3" /> open source · published on npm
           </div>
 
@@ -826,6 +827,13 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Live counter strip */}
+      <div className="mx-auto max-w-6xl px-6 py-8">
+        <div className="flex justify-center">
+          <LiveUserCounter />
+        </div>
+      </div>
 
       <footer className="border-t border-zinc-100 px-6 py-10 dark:border-zinc-900">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 text-center">

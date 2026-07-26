@@ -691,8 +691,6 @@ export default function Home() {
             <Terminal className="h-3 w-3" /> open source · published on npm
           </div>
 
-          <LiveUserCounter className="mb-6" />
-
           <h1 className="mb-5 text-4xl font-semibold leading-[1.15] tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-5xl">
             Three modes orbit your codebase.{" "}
             <span className="text-teal-600 dark:text-teal-400">Only you decide what lands.</span>
@@ -829,6 +827,13 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Live counter strip */}
+      <div className="mx-auto max-w-6xl px-6 py-8">
+        <div className="flex justify-center">
+          <LiveUserCounter />
+        </div>
+      </div>
 
       <footer className="border-t border-zinc-100 px-6 py-10 dark:border-zinc-900">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 text-center">
