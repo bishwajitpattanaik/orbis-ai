@@ -1,7 +1,6 @@
 import chalk from "chalk";
 import { Command } from "commander";
 import { getStoredToken, requireAuth } from "../../../lib/token.js";
-import prisma from "../../../lib/db.js";
 
 const URL = "http://localhost:3005";
 
