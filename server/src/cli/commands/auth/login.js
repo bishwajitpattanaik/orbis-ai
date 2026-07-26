@@ -14,6 +14,7 @@ import * as z from "zod/v4";
 import dotenv from "dotenv";
 
 // Local imports
+import prisma from "../../../lib/db.js";
 import { getStoredToken, isTokenExpired, storeToken } from "../../../lib/token.js";
 
 
